@@ -312,14 +312,14 @@ function ButtonsSection() {
     >
       <Sub title="Variants × Sizes">
         <div className="border border-border overflow-x-auto">
-          <div className="grid grid-cols-[100px_repeat(4,_1fr)] border-b border-border bg-muted/40 min-w-[480px]">
+          <div className="grid grid-cols-[100px_repeat(4,1fr)] border-b border-border bg-muted/40 min-w-120">
             <div className="px-3 py-2 font-mono text-[10px] text-muted-foreground border-r border-border">Variant</div>
             {BTN_SIZES.map((s) => (
               <div key={s} className="px-3 py-2 font-mono text-[10px] text-muted-foreground text-center">{s}</div>
             ))}
           </div>
           {BTN_VARIANTS.map((variant) => (
-            <div key={variant} className="grid grid-cols-[100px_repeat(4,_1fr)] border-b border-border last:border-b-0 min-w-[480px]">
+            <div key={variant} className="grid grid-cols-[100px_repeat(4,1fr)] border-b border-border last:border-b-0 min-w-120">
               <div className="px-3 py-4 font-mono text-[10px] text-muted-foreground flex items-center border-r border-border">
                 {variant}
               </div>
@@ -335,14 +335,14 @@ function ButtonsSection() {
 
       <Sub title="Icon Sizes">
         <div className="border border-border overflow-x-auto">
-          <div className="grid grid-cols-[100px_repeat(4,_1fr)] border-b border-border bg-muted/40 min-w-[440px]">
+          <div className="grid grid-cols-[100px_repeat(4,1fr)] border-b border-border bg-muted/40 min-w-110">
             <div className="px-3 py-2 font-mono text-[10px] text-muted-foreground border-r border-border">Variant</div>
             {ICON_SIZES.map((s) => (
               <div key={s} className="px-3 py-2 font-mono text-[10px] text-muted-foreground text-center">{s}</div>
             ))}
           </div>
           {(["default", "outline", "ghost", "destructive"] as const).map((variant) => (
-            <div key={variant} className="grid grid-cols-[100px_repeat(4,_1fr)] border-b border-border last:border-b-0 min-w-[440px]">
+            <div key={variant} className="grid grid-cols-[100px_repeat(4,1fr)] border-b border-border last:border-b-0 min-w-110">
               <div className="px-3 py-4 font-mono text-[10px] text-muted-foreground flex items-center border-r border-border">
                 {variant}
               </div>
@@ -588,7 +588,7 @@ function CardsSection() {
           <Card size="sm">
             <CardHeader>
               <CardTitle>Small Size</CardTitle>
-              <CardDescription>Reduced padding via data-size="sm".</CardDescription>
+              <CardDescription>Reduced padding via data-size=&quot;sm&quot;.</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground">Compact variant for dense layouts.</p>
