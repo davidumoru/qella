@@ -84,7 +84,7 @@ export default function GamesPage() {
       <div className="px-8 py-6">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           {GAMES.map((game) => {
-            const Wrapper = game.status === "active" ? Link : "div"
+            const Wrapper = (game.status === "active" ? Link : "div") as React.ElementType
             return (
             <Wrapper
               key={game.id}
