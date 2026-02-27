@@ -28,7 +28,7 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <div className="w-full max-w-xs space-y-10">
+      <div className="w-full max-w-xs space-y-10 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 ease-out">
         <div className="flex items-center gap-2">
           <div className="size-2.5 bg-primary" />
           <span className="font-pixel-square text-base">qella</span>

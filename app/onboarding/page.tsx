@@ -78,7 +78,7 @@ export default function OnboardingPage() {
   if (step === "welcome") {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-xs space-y-10">
+        <div className="w-full max-w-xs space-y-10 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 ease-out">
           <div className="flex items-center gap-2">
             <div className="size-2.5 bg-primary" />
             <span className="font-pixel-square text-base">qella</span>
@@ -130,7 +130,7 @@ export default function OnboardingPage() {
   if (step === "username") {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-xs space-y-10">
+        <div className="w-full max-w-xs space-y-10 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 ease-out">
           <div className="flex items-center gap-2">
             <div className="size-2.5 bg-primary" />
             <span className="font-pixel-square text-base">qella</span>
@@ -215,14 +215,14 @@ export default function OnboardingPage() {
   // ── Done ─────────────────────────────────────────────────────────────────
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
-      <div className="w-full max-w-xs space-y-10">
+      <div className="w-full max-w-xs space-y-10 animate-in fade-in-0 slide-in-from-bottom-2 duration-300 ease-out">
         <div className="flex items-center gap-2">
           <div className="size-2.5 bg-primary" />
           <span className="font-pixel-square text-base">qella</span>
         </div>
 
         <div className="space-y-6">
-          <div className="size-14 bg-primary flex items-center justify-center">
+          <div className="size-14 bg-primary flex items-center justify-center animate-in zoom-in-95 fade-in-0 duration-300 ease-out">
             <span className="font-mono text-lg font-medium text-primary-foreground">
               {trimmed[0]?.toUpperCase()}
             </span>

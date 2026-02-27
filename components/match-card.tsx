@@ -31,7 +31,7 @@ function StatusBadge({ status }: { status: MatchStatus }) {
 export function MatchCard({ match }: { match: Match }) {
   return (
     <Link href={`/beta/arena/${match.id}`}>
-      <div className="border border-border bg-card p-4 space-y-4 hover:bg-muted/20 transition-colors">
+      <div className="border border-border bg-card p-4 space-y-4 hover:bg-muted/20 hover:-translate-y-0.5 transition-all duration-150 ease-out">
         <div className="flex items-center justify-between">
           <StatusBadge status={match.status} />
           <span className="font-mono text-sm text-muted-foreground uppercase tracking-widest">
