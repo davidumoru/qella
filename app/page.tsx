@@ -46,33 +46,171 @@ function useConfetti(disabled: boolean) {
   }, [disabled])
 }
 
-function DoneStep({ email, username, reducedMotion }: { email: string; username: string; reducedMotion: boolean }) {
+type PassportTheme = "dark" | "orange"
+
+const PassportCard = React.forwardRef<
+  HTMLDivElement,
+  { username: string; waitlistNumber: string; theme: PassportTheme }
+>(function PassportCard({ username, waitlistNumber, theme }, ref) {
+  const mono = "monospace"
+  const isOrange = theme === "orange"
+
+  return (
+    <div
+      ref={ref}
+      style={{ width: "100%", backgroundColor: "var(--background)", border: "1px solid var(--border)", fontFamily: mono, overflow: "hidden" }}
+    >
+      {/* Dark theme: thin orange accent bar. Orange theme: none (header section is already orange) */}
+      {!isOrange && <div style={{ height: 3, backgroundColor: "var(--primary)" }} />}
+
+      {/* Header section — orange bg for orange theme, dark bg for dark theme */}
+      <div style={{ backgroundColor: isOrange ? "var(--primary)" : "var(--background)", padding: "24px 28px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
+          <span style={{ fontFamily: mono, fontSize: 17, fontWeight: 700, letterSpacing: "0.04em",
+            color: isOrange ? "var(--background)" : "var(--primary)" }}>
+            qella
+          </span>
+          <span style={{ fontFamily: mono, fontSize: 8, letterSpacing: "0.18em", textTransform: "uppercase" as const, marginTop: 4,
+            color: isOrange ? "rgba(0,0,0,0.45)" : "var(--muted-foreground)" }}>
+            Early Access Passport
+          </span>
+        </div>
+
+        <div style={{ fontFamily: mono, fontSize: 28, fontWeight: 700, letterSpacing: "-0.02em",
+          color: isOrange ? "var(--background)" : "var(--foreground)" }}>
+          @{username}
+        </div>
+      </div>
+
+      {/* Data section — always dark */}
+      <div style={{ padding: "20px 28px 18px", borderTop: isOrange ? "none" : "1px solid var(--border)" }}>
+        <div style={{ display: "flex" }}>
+          <div style={{ flex: 1, paddingRight: 24, borderRight: "1px solid var(--border)" }}>
+            <div style={{ fontFamily: mono, fontSize: 8, color: "var(--muted-foreground)", letterSpacing: "0.14em", textTransform: "uppercase" as const, marginBottom: 8 }}>
+              Waitlist No.
+            </div>
+            <div style={{ fontFamily: mono, fontSize: 20, fontWeight: 700, color: "var(--primary)" }}>
+              #{waitlistNumber}
+            </div>
+          </div>
+          <div style={{ flex: 1, paddingLeft: 24 }}>
+            <div style={{ fontFamily: mono, fontSize: 8, color: "var(--muted-foreground)", letterSpacing: "0.14em", textTransform: "uppercase" as const, marginBottom: 8 }}>
+              Joined
+            </div>
+            <div style={{ fontFamily: mono, fontSize: 20, fontWeight: 700, color: "var(--foreground)" }}>
+              Feb 2026
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ borderTop: "1px solid var(--border)", padding: "10px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontFamily: mono, fontSize: 9, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", textTransform: "uppercase" as const }}>
+          qella.gg · AI model arena
+        </span>
+        <div style={{ width: 7, height: 7, backgroundColor: "var(--primary)" }} />
+      </div>
+    </div>
+  )
+})
+
+function DoneStep({
+  email,
+  username,
+  waitlistNumber,
+  reducedMotion,
+}: {
+  email: string
+  username: string
+  waitlistNumber: string
+  reducedMotion: boolean
+}) {
   useConfetti(reducedMotion)
+  const cardRef = React.useRef<HTMLDivElement>(null)
+  const [flipping, setFlipping] = React.useState(false)
+  const [showPassport, setShowPassport] = React.useState(false)
+  const [theme, setTheme] = React.useState<PassportTheme>("dark")
+
+  const handleReveal = () => {
+    if (reducedMotion) { setShowPassport(true); return }
+    setFlipping(true)
+    setTimeout(() => setShowPassport(true), 275) // swap at scaleX ≈ 0 (midpoint of 550ms)
+  }
+
+  const handleDownload = async () => {
+    if (!cardRef.current) return
+    const { toPng } = await import("html-to-image")
+    const dataUrl = await toPng(cardRef.current, { pixelRatio: 2, skipFonts: true })
+    const a = document.createElement("a")
+    a.href = dataUrl
+    a.download = `qella-passport-${username}.png`
+    a.click()
+  }
+
   return (
     <div className="space-y-6">
       <motion.div
-        className="size-14 bg-primary flex items-center justify-center"
-        initial={{ scale: 0.75, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3, ease: [0.165, 0.84, 0.44, 1] }}
+        animate={flipping ? { scaleX: [1, 0.01, 1] } : { scaleX: 1 }}
+        transition={flipping ? { duration: 0.55, times: [0, 0.5, 1], ease: ["easeIn", "easeOut"] } : {}}
       >
-        <span className="font-pixel-square text-base text-primary-foreground">Q</span>
+        {showPassport ? (
+          <PassportCard ref={cardRef} username={username} waitlistNumber={waitlistNumber} theme={theme} />
+        ) : (
+          <div className="space-y-6">
+            <motion.div
+              className="size-14 bg-primary flex items-center justify-center"
+              initial={{ scale: 0.75, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3, ease: [0.165, 0.84, 0.44, 1] }}
+            >
+              <span className="font-pixel-square text-base text-primary-foreground">Q</span>
+            </motion.div>
+
+            <div className="space-y-2">
+              <h2 className="font-sans text-2xl font-medium tracking-tight">
+                You&apos;re on the list.
+              </h2>
+              <p className="font-mono text-sm text-muted-foreground">
+                @{username} · {email}
+              </p>
+            </div>
+
+            <p className="font-mono text-sm/relaxed text-muted-foreground">
+              We&apos;ll reach out when beta opens. Keep an eye on your inbox —
+              early access goes to the list first.
+            </p>
+
+            <Button className="w-full" onClick={handleReveal} disabled={flipping}>
+              Reveal your passport
+            </Button>
+          </div>
+        )}
       </motion.div>
 
-      <div className="space-y-2">
-        <h2 className="font-sans text-2xl font-medium tracking-tight">
-          You&apos;re on the list.
-        </h2>
-        <p className="font-mono text-sm text-muted-foreground">
-          @{username} · {email}
-        </p>
-      </div>
-
-      <p className="font-mono text-sm/relaxed text-muted-foreground">
-        We&apos;ll reach out when beta opens. Keep an eye on your inbox —
-        early access goes to the list first.
-      </p>
-
+      {showPassport && (
+        <motion.div
+          className="space-y-4"
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.3 }}
+        >
+          <div className="flex justify-center gap-3">
+            {(["dark", "orange"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                aria-label={`${t} theme`}
+                className={`size-6 transition-shadow cursor-pointer ${theme === t ? "ring-2 ring-foreground ring-offset-2 ring-offset-background" : "ring-1 ring-border"}`}
+                style={{ backgroundColor: t === "dark" ? "var(--background)" : "var(--primary)" }}
+              />
+            ))}
+          </div>
+          <Button variant="outline" className="w-full" onClick={handleDownload}>
+            Download passport
+          </Button>
+        </motion.div>
+      )}
     </div>
   )
 }
@@ -99,6 +237,7 @@ export default function WaitlistPage() {
   const [username, setUsername] = React.useState("")
   const [checking, setChecking] = React.useState(false)
   const [available, setAvailable] = React.useState<boolean | null>(null)
+  const [waitlistNumber, setWaitlistNumber] = React.useState("")
   const shouldReduceMotion = useReducedMotion()
 
   const navigate = (next: Step) => {
@@ -130,7 +269,10 @@ export default function WaitlistPage() {
 
   const handleClaim = (e: React.FormEvent) => {
     e.preventDefault()
-    if (canClaim) navigate("done")
+    if (canClaim) {
+      setWaitlistNumber(String(Math.floor(Math.random() * 9000) + 1000).padStart(4, "0"))
+      navigate("done")
+    }
   }
 
   return (
@@ -305,7 +447,7 @@ export default function WaitlistPage() {
 
           {/* ── Done ────────────────────────────────────────────────────── */}
           {step === "done" && (
-            <DoneStep email={email} username={trimmed} reducedMotion={shouldReduceMotion ?? false} />
+            <DoneStep email={email} username={trimmed} waitlistNumber={waitlistNumber} reducedMotion={shouldReduceMotion ?? false} />
           )}
 
           {/* ── Step indicator (shared) ──────────────────────────────────── */}
