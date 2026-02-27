@@ -85,7 +85,7 @@ function SideNav() {
   }, [])
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-52 border-r border-border bg-background z-10 overflow-y-auto flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-52 border-r border-border bg-background z-10 overflow-y-auto hidden lg:flex flex-col">
       <div className="p-6 flex flex-col flex-1">
         <div className="mb-10">
           <div className="flex items-center gap-2 mb-1.5">
@@ -135,7 +135,7 @@ function SectionWrap({
   id: string; index: string; title: string; description?: string; children: React.ReactNode
 }) {
   return (
-    <section id={id} className="py-16 border-b border-border last:border-b-0 scroll-mt-8">
+    <section id={id} className="py-12 lg:py-16 border-b border-border last:border-b-0 scroll-mt-24 lg:scroll-mt-8">
       <div className="mb-10">
         <p className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1.5">
           {index} — {id}
@@ -690,19 +690,44 @@ function SpacingSection() {
   )
 }
 
+function MobileNav() {
+  return (
+    <nav className="lg:hidden sticky top-0 z-20 w-full border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="flex items-center gap-6 px-6 py-4 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="size-3 bg-primary" />
+          <span className="font-sans text-sm font-medium tracking-tight">qella</span>
+        </div>
+        <div className="flex gap-4 pr-6">
+          {NAV_SECTIONS.map(({ id, label }) => (
+            <a
+              key={id}
+              href={`#${id}`}
+              className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground whitespace-nowrap hover:text-foreground transition-colors"
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </div>
+    </nav>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function BrandingPage() {
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen bg-background text-foreground flex-col lg:flex-row">
       <SideNav />
+      <MobileNav />
 
-      <main className="flex-1 ml-52">
-        <header className="border-b border-border px-16 py-12">
+      <main className="flex-1 lg:ml-52">
+        <header className="border-b border-border px-6 py-10 md:px-12 lg:px-16 lg:py-12">
           <p className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-2">
             Qella · Design System
           </p>
-          <h1 className="font-sans text-4xl font-medium tracking-tight">Brand Reference</h1>
+          <h1 className="font-sans text-3xl md:text-4xl font-medium tracking-tight">Brand Reference</h1>
           <p className="text-muted-foreground text-xs/relaxed mt-3 max-w-lg">
             A comprehensive reference for colors, typography, components, and spatial decisions.
             Built on Tailwind v4, shadcn radix-lyra, Geist typefaces, and oklch color space.
@@ -716,7 +741,7 @@ export default function BrandingPage() {
           </div>
         </header>
 
-        <div className="px-16">
+        <div className="px-6 md:px-12 lg:px-16">
           <ColorsSection />
           <TypographySection />
           <ButtonsSection />
