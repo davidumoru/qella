@@ -64,12 +64,11 @@ const NAV_SECTIONS = [
   { id: "spacing",    label: "Spacing",    index: "07" },
 ]
 
-function SideNav() {
+function useActiveSection() {
   const [active, setActive] = React.useState<string>("colors")
 
   React.useEffect(() => {
     const observers: IntersectionObserver[] = []
-
     NAV_SECTIONS.forEach(({ id }) => {
       const el = document.getElementById(id)
       if (!el) return
@@ -80,45 +79,53 @@ function SideNav() {
       observer.observe(el)
       observers.push(observer)
     })
-
     return () => observers.forEach((o) => o.disconnect())
   }, [])
 
+  return active
+}
+
+function SideNav() {
+  const active = useActiveSection()
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-52 border-r border-border bg-background z-10 overflow-y-auto hidden lg:flex flex-col">
-      <div className="p-6 flex flex-col flex-1">
-        <div className="mb-10">
-          <div className="flex items-center gap-2 mb-1.5">
+    <aside className="fixed left-0 top-0 h-screen w-52 border-r border-border bg-background z-10 hidden lg:flex flex-col">
+      <div className="p-5 flex flex-col flex-1 min-h-0">
+        <div className="mb-6 shrink-0">
+          <div className="flex items-center gap-2 mb-1">
             <div className="size-3 bg-primary" />
-            <span className="font-sans text-sm font-medium tracking-tight">qella</span>
+            <span className="font-pixel-square text-base">qella</span>
           </div>
-          <p className="font-mono text-[10px] text-muted-foreground">Design System v1.0</p>
+          <p className="font-mono text-sm text-muted-foreground">Design System v1.0</p>
         </div>
 
-        <nav className="flex-1">
-          <p className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-3">
+        <nav className="flex-1 min-h-0 flex flex-col">
+          <p className="font-mono text-sm tracking-widest uppercase text-muted-foreground mb-2 shrink-0">
             Sections
           </p>
-          <div className="space-y-px">
+          <div className="space-y-px overflow-y-auto">
             {NAV_SECTIONS.map(({ id, label, index }) => (
               <a
                 key={id}
                 href={`#${id}`}
-                className={`flex items-center gap-3 px-2 py-1.5 text-xs transition-colors ${
+                aria-current={active === id ? "true" : undefined}
+                className={`flex items-center gap-3 px-2 py-1.5 text-sm transition-colors ${
                   active === id
                     ? "text-foreground bg-muted font-medium"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
-                <span className="font-mono text-[10px] opacity-40 w-5 shrink-0">{index}</span>
+                <span className={`font-mono text-sm w-5 shrink-0 transition-opacity ${active === id ? "opacity-100 text-primary" : "opacity-40"}`}>
+                  {index}
+                </span>
                 {label}
               </a>
             ))}
           </div>
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-border">
-          <p className="font-mono text-[10px] text-muted-foreground leading-relaxed">
+        <div className="mt-4 pt-4 border-t border-border shrink-0">
+          <p className="font-mono text-sm text-muted-foreground leading-relaxed">
             Tailwind v4<br />shadcn radix-lyra<br />oklch color space
           </p>
         </div>
@@ -137,12 +144,12 @@ function SectionWrap({
   return (
     <section id={id} className="py-12 lg:py-16 border-b border-border last:border-b-0 scroll-mt-24 lg:scroll-mt-8">
       <div className="mb-10">
-        <p className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-1.5">
+        <p className="font-mono text-sm tracking-widest uppercase text-muted-foreground mb-1.5">
           {index} — {id}
         </p>
         <h2 className="font-sans text-2xl font-medium tracking-tight">{title}</h2>
         {description && (
-          <p className="text-muted-foreground text-xs/relaxed mt-2 max-w-prose">{description}</p>
+          <p className="text-muted-foreground text-sm/relaxed mt-2 max-w-prose">{description}</p>
         )}
       </div>
       {children}
@@ -153,7 +160,7 @@ function SectionWrap({
 function Sub({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mt-10 first:mt-0">
-      <p className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-4">
+      <p className="font-mono text-sm tracking-widest uppercase text-muted-foreground mb-4">
         {title}
       </p>
       {children}
@@ -203,8 +210,8 @@ function ColorsSection() {
                 className="h-12 w-full ring-1 ring-border mb-2"
                 style={{ backgroundColor: `var(${color.cssVar})` }}
               />
-              <p className="font-mono text-[10px] font-medium text-foreground truncate">{color.label}</p>
-              <p className="font-mono text-[10px] text-muted-foreground leading-relaxed break-all">{color.light}</p>
+              <p className="font-mono text-sm font-medium text-foreground truncate">{color.label}</p>
+              <p className="font-mono text-sm text-muted-foreground leading-relaxed break-all">{color.light}</p>
             </div>
           ))}
         </div>
@@ -219,12 +226,12 @@ function ColorsSection() {
         <div className="flex gap-4 flex-wrap">
           {CHART_COLORS.map((color) => (
             <div key={color.label}>
-              <p className="font-mono text-[10px] font-medium">{color.label}</p>
-              <p className="font-mono text-[10px] text-muted-foreground">{color.value}</p>
+              <p className="font-mono text-sm font-medium">{color.label}</p>
+              <p className="font-mono text-sm text-muted-foreground">{color.value}</p>
             </div>
           ))}
         </div>
-        <p className="font-mono text-[10px] text-muted-foreground mt-4">
+        <p className="font-mono text-sm text-muted-foreground mt-4">
           Monochromatic warm amber scale — calibrated for single-series data visualization.
         </p>
       </Sub>
@@ -245,30 +252,31 @@ const FONTS = [
 ]
 
 const TYPE_SCALE = [
-  { label: "4xl", cls: "text-4xl" },
-  { label: "2xl", cls: "text-2xl" },
-  { label: "xl",  cls: "text-xl" },
-  { label: "lg",  cls: "text-lg" },
-  { label: "base",cls: "text-base" },
-  { label: "sm",  cls: "text-sm" },
-  { label: "xs",  cls: "text-xs" },
+  { label: "5xl",  cls: "text-5xl",  usage: "Hero headings"              },
+  { label: "4xl",  cls: "text-4xl",  usage: "Large hero headings"        },
+  { label: "3xl",  cls: "text-3xl",  usage: "Section headings"           },
+  { label: "2xl",  cls: "text-2xl",  usage: "Page headings"              },
+  { label: "xl",   cls: "text-xl",   usage: "Sub-headings"               },
+  { label: "lg",   cls: "text-lg",   usage: "Large labels / stats"       },
+  { label: "base", cls: "text-base", usage: "Card titles, model names"   },
+  { label: "sm",   cls: "text-sm",   usage: "Body copy, labels, metadata"},
 ]
 
 function TypographySection() {
   return (
     <SectionWrap
       id="typography" index="02" title="Typography"
-      description="Seven typefaces served from the geist npm package for full glyph support and font-feature-settings access. Sans and Mono for UI; five Pixel variants for display use."
+      description="Seven typefaces served from the geist npm package for full glyph support and font-feature-settings access. Sans and Mono for UI; five Pixel variants for display use. Pixel Square is used for the wordmark and decorative accents."
     >
       <Sub title="Typefaces">
         <div className="space-y-10">
           {FONTS.map((font) => (
             <div key={font.label} className="border-t border-border pt-8 first:border-0 first:pt-0">
               <div className="flex items-baseline justify-between mb-5">
-                <p className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground">
+                <p className="font-mono text-sm tracking-widest uppercase text-muted-foreground">
                   {font.label}
                 </p>
-                <p className="font-mono text-[10px] text-muted-foreground">{font.cssVar}</p>
+                <p className="font-mono text-sm text-muted-foreground">{font.cssVar}</p>
               </div>
               <p className={`${font.cls} text-5xl leading-none mb-3 text-foreground`}>
                 The quick brown fox
@@ -276,7 +284,7 @@ function TypographySection() {
               <p className={`${font.cls} text-lg leading-snug mb-4 text-muted-foreground`}>
                 jumps over the lazy dog
               </p>
-              <p className={`${font.cls} text-xs text-muted-foreground/70 leading-relaxed`}>
+              <p className={`${font.cls} text-sm text-muted-foreground/70 leading-relaxed`}>
                 ABCDEFGHIJKLMNOPQRSTUVWXYZ · abcdefghijklmnopqrstuvwxyz · 0123456789 · !@#$%&amp;*()_+
               </p>
             </div>
@@ -286,10 +294,11 @@ function TypographySection() {
 
       <Sub title="Type Scale — Geist Sans">
         <div className="border border-border divide-y divide-border">
-          {TYPE_SCALE.map(({ label, cls }) => (
+          {TYPE_SCALE.map(({ label, cls, usage }) => (
             <div key={label} className="flex items-baseline gap-6 px-4 py-3">
-              <p className="font-mono text-[10px] text-muted-foreground w-10 shrink-0">{label}</p>
-              <p className={`font-sans ${cls} text-foreground`}>The quick brown fox</p>
+              <p className="font-mono text-sm text-muted-foreground w-10 shrink-0">{label}</p>
+              <p className={`font-sans ${cls} text-foreground flex-1`}>The quick brown fox</p>
+              <p className="font-mono text-sm text-muted-foreground/50 shrink-0 hidden sm:block">{usage}</p>
             </div>
           ))}
         </div>
@@ -313,14 +322,14 @@ function ButtonsSection() {
       <Sub title="Variants × Sizes">
         <div className="border border-border overflow-x-auto">
           <div className="grid grid-cols-[100px_repeat(4,1fr)] border-b border-border bg-muted/40 min-w-120">
-            <div className="px-3 py-2 font-mono text-[10px] text-muted-foreground border-r border-border">Variant</div>
+            <div className="px-3 py-2 font-mono text-sm text-muted-foreground border-r border-border">Variant</div>
             {BTN_SIZES.map((s) => (
-              <div key={s} className="px-3 py-2 font-mono text-[10px] text-muted-foreground text-center">{s}</div>
+              <div key={s} className="px-3 py-2 font-mono text-sm text-muted-foreground text-center">{s}</div>
             ))}
           </div>
           {BTN_VARIANTS.map((variant) => (
             <div key={variant} className="grid grid-cols-[100px_repeat(4,1fr)] border-b border-border last:border-b-0 min-w-120">
-              <div className="px-3 py-4 font-mono text-[10px] text-muted-foreground flex items-center border-r border-border">
+              <div className="px-3 py-4 font-mono text-sm text-muted-foreground flex items-center border-r border-border">
                 {variant}
               </div>
               {BTN_SIZES.map((size) => (
@@ -336,14 +345,14 @@ function ButtonsSection() {
       <Sub title="Icon Sizes">
         <div className="border border-border overflow-x-auto">
           <div className="grid grid-cols-[100px_repeat(4,1fr)] border-b border-border bg-muted/40 min-w-110">
-            <div className="px-3 py-2 font-mono text-[10px] text-muted-foreground border-r border-border">Variant</div>
+            <div className="px-3 py-2 font-mono text-sm text-muted-foreground border-r border-border">Variant</div>
             {ICON_SIZES.map((s) => (
-              <div key={s} className="px-3 py-2 font-mono text-[10px] text-muted-foreground text-center">{s}</div>
+              <div key={s} className="px-3 py-2 font-mono text-sm text-muted-foreground text-center">{s}</div>
             ))}
           </div>
           {(["default", "outline", "ghost", "destructive"] as const).map((variant) => (
             <div key={variant} className="grid grid-cols-[100px_repeat(4,1fr)] border-b border-border last:border-b-0 min-w-110">
-              <div className="px-3 py-4 font-mono text-[10px] text-muted-foreground flex items-center border-r border-border">
+              <div className="px-3 py-4 font-mono text-sm text-muted-foreground flex items-center border-r border-border">
                 {variant}
               </div>
               {ICON_SIZES.map((size) => (
@@ -422,9 +431,9 @@ function BadgesSection() {
 
       <Sub title="In Context">
         <div className="flex flex-wrap gap-3 items-center">
-          <span className="text-xs text-foreground">Deployment status</span>
+          <span className="text-sm text-foreground">Deployment status</span>
           <Badge variant="secondary">Pending</Badge>
-          <span className="text-xs text-muted-foreground">→</span>
+          <span className="text-sm text-muted-foreground">→</span>
           <Badge>Live</Badge>
         </div>
       </Sub>
@@ -548,7 +557,7 @@ function CardsSection() {
               <CardDescription>Header and content slots only.</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 Cards use ring-1 ring-foreground/10 for a softer containment edge than a traditional border.
               </p>
             </CardContent>
@@ -560,7 +569,7 @@ function CardsSection() {
               <CardDescription>Actions live in the footer slot.</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 The footer renders a top border and consistent padding automatically.
               </p>
             </CardContent>
@@ -579,7 +588,7 @@ function CardsSection() {
               </CardAction>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 The action slot is positioned via a grid layout inside CardHeader.
               </p>
             </CardContent>
@@ -591,7 +600,7 @@ function CardsSection() {
               <CardDescription>Reduced padding via data-size=&quot;sm&quot;.</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">Compact variant for dense layouts.</p>
+              <p className="text-sm text-muted-foreground">Compact variant for dense layouts.</p>
             </CardContent>
           </Card>
 
@@ -656,8 +665,8 @@ function SpacingSection() {
         <div className="border border-border divide-y divide-border">
           {SPACING_SCALE.map(({ token, px, cls }) => (
             <div key={token} className="grid grid-cols-[72px_60px_1fr] items-center gap-4 px-4 py-2.5">
-              <p className="font-mono text-[10px] text-muted-foreground">space-{token}</p>
-              <p className="font-mono text-[10px] text-muted-foreground">{px}</p>
+              <p className="font-mono text-sm text-muted-foreground">space-{token}</p>
+              <p className="font-mono text-sm text-muted-foreground">{px}</p>
               <div className={`${cls} h-3 bg-primary shrink-0`} />
             </div>
           ))}
@@ -675,12 +684,12 @@ function SpacingSection() {
           ].map(({ label, r, value, opacity }) => (
             <div key={label} className={`flex flex-col items-center gap-2 ${opacity}`}>
               <div className={`size-12 bg-primary ${r}`} />
-              <p className="font-mono text-[10px] text-muted-foreground">{label}</p>
-              <p className="font-mono text-[10px] text-foreground font-medium">{value}</p>
+              <p className="font-mono text-sm text-muted-foreground">{label}</p>
+              <p className="font-mono text-sm text-foreground font-medium">{value}</p>
             </div>
           ))}
         </div>
-        <p className="font-mono text-[10px] text-muted-foreground mt-8 max-w-prose leading-relaxed">
+        <p className="font-mono text-sm text-muted-foreground mt-8 max-w-prose leading-relaxed">
           The --radius CSS variable is defined at 0.625rem but intentionally overridden everywhere
           with rounded-none. All components, inputs, cards, dialogs, and badges inherit this zero-radius
           geometry as a core identity decision.
@@ -691,19 +700,33 @@ function SpacingSection() {
 }
 
 function MobileNav() {
+  const active = useActiveSection()
+  const itemRefs = React.useRef<Record<string, HTMLAnchorElement | null>>({})
+
+  React.useEffect(() => {
+    const el = itemRefs.current[active]
+    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" })
+  }, [active])
+
   return (
-    <nav className="lg:hidden sticky top-0 z-20 w-full border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="flex items-center gap-6 px-6 py-4 overflow-x-auto no-scrollbar">
+    <nav className="lg:hidden sticky top-0 z-20 w-full border-b border-border bg-background/95 backdrop-blur-sm">
+      <div className="flex items-center gap-6 px-6 py-3 overflow-x-auto no-scrollbar">
         <div className="flex items-center gap-2 shrink-0">
-          <div className="size-3 bg-primary" />
-          <span className="font-sans text-sm font-medium tracking-tight">qella</span>
+          <div className="size-2.5 bg-primary" />
+          <span className="font-pixel-square text-base">qella</span>
         </div>
-        <div className="flex gap-4 pr-6">
+        <div className="flex gap-1 pr-6">
           {NAV_SECTIONS.map(({ id, label }) => (
             <a
               key={id}
               href={`#${id}`}
-              className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground whitespace-nowrap hover:text-foreground transition-colors"
+              ref={(el) => { itemRefs.current[id] = el }}
+              aria-current={active === id ? "true" : undefined}
+              className={`font-mono text-sm px-3 py-1 whitespace-nowrap transition-colors ${
+                active === id
+                  ? "text-foreground bg-muted"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               {label}
             </a>
@@ -724,11 +747,11 @@ export default function BrandingPage() {
 
       <main className="flex-1 lg:ml-52">
         <header className="border-b border-border px-6 py-10 md:px-12 lg:px-16 lg:py-12">
-          <p className="font-mono text-[10px] tracking-widest uppercase text-muted-foreground mb-2">
+          <p className="font-mono text-sm tracking-widest uppercase text-muted-foreground mb-2">
             Qella · Design System
           </p>
           <h1 className="font-sans text-3xl md:text-4xl font-medium tracking-tight">Brand Reference</h1>
-          <p className="text-muted-foreground text-xs/relaxed mt-3 max-w-lg">
+          <p className="text-muted-foreground text-sm/relaxed mt-3 max-w-lg">
             A comprehensive reference for colors, typography, components, and spatial decisions.
             Built on Tailwind v4, shadcn radix-lyra, Geist typefaces, and oklch color space.
           </p>
