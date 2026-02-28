@@ -11,6 +11,10 @@ type Step = "welcome" | "email" | "username" | "done"
 
 const STEPS: Step[] = ["welcome", "email", "username", "done"]
 
+function isValidEmail(value: string) {
+  return /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*\.[a-zA-Z]{2,}$/.test(value)
+}
+
 function isValidUsername(value: string) {
   return /^[a-zA-Z0-9_]{3,17}$/.test(value)
 }
@@ -236,6 +240,10 @@ export default function WaitlistPage() {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) return
+    if (!isValidEmail(email.trim())) {
+      setEmailError("Please enter a valid email address.")
+      return
+    }
     setEmailError("")
     setEmailLoading(true)
     const taken = await checkEmailTaken(email.trim())

@@ -7,7 +7,7 @@ import { waitlist } from "@/db/schema"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMAIL_RE = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*\.[a-zA-Z]{2,}$/
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,17}$/
 
 const RESERVED_USERNAMES = new Set([
@@ -65,14 +65,7 @@ export async function joinWaitlist(
 
     const waitlistNumber = String(row.waitlistNumber).padStart(4, "0")
 
-    resend.emails.send({
-      from: process.env.RESEND_FROM!,
-      to: email.trim(),
-      subject: `You're on the list, @${username}`,
-      html: confirmationEmail(username.trim(), waitlistNumber),
-    }).then(({ error }) => {
-      if (error) console.error("[resend]", error)
-    })
+    void sendConfirmation(email.trim(), username.trim(), waitlistNumber)
 
     return { waitlistNumber }
   } catch (err: unknown) {
@@ -83,6 +76,20 @@ export async function joinWaitlist(
     }
     console.error("[joinWaitlist]", err)
     return { error: "server_error" }
+  }
+}
+
+async function sendConfirmation(to: string, username: string, waitlistNumber: string) {
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.RESEND_FROM!,
+      to,
+      subject: `You're on the list, @${username}`,
+      html: confirmationEmail(username, waitlistNumber),
+    })
+    if (error) console.error("[resend]", error)
+  } catch (err) {
+    console.error("[resend]", err)
   }
 }
 
