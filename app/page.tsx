@@ -5,15 +5,14 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
+import { checkEmailTaken, checkUsername, joinWaitlist } from "@/app/actions"
 
 type Step = "welcome" | "email" | "username" | "done"
 
 const STEPS: Step[] = ["welcome", "email", "username", "done"]
 
-const TAKEN = ["admin", "qella", "chess", "gpt4", "claude", "gemini", "openai", "meta", "google", "root"]
-
 function isValidUsername(value: string) {
-  return /^[a-zA-Z0-9_]{3,20}$/.test(value)
+  return /^[a-zA-Z0-9_]{3,17}$/.test(value)
 }
 
 const FEATURES = [
@@ -60,10 +59,8 @@ const PassportCard = React.forwardRef<
       ref={ref}
       style={{ width: "100%", backgroundColor: "var(--background)", border: "1px solid var(--border)", fontFamily: mono, overflow: "hidden" }}
     >
-      {/* Dark theme: thin orange accent bar. Orange theme: none (header section is already orange) */}
       {!isOrange && <div style={{ height: 3, backgroundColor: "var(--primary)" }} />}
 
-      {/* Header section — orange bg for orange theme, dark bg for dark theme */}
       <div style={{ backgroundColor: isOrange ? "var(--primary)" : "var(--background)", padding: "24px 28px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 28 }}>
           <span style={{ fontFamily: mono, fontSize: 17, fontWeight: 700, letterSpacing: "0.04em",
@@ -82,29 +79,15 @@ const PassportCard = React.forwardRef<
         </div>
       </div>
 
-      {/* Data section — always dark */}
       <div style={{ padding: "20px 28px 18px", borderTop: isOrange ? "none" : "1px solid var(--border)" }}>
-        <div style={{ display: "flex" }}>
-          <div style={{ flex: 1, paddingRight: 24, borderRight: "1px solid var(--border)" }}>
-            <div style={{ fontFamily: mono, fontSize: 8, color: "var(--muted-foreground)", letterSpacing: "0.14em", textTransform: "uppercase" as const, marginBottom: 8 }}>
-              Waitlist No.
-            </div>
-            <div style={{ fontFamily: mono, fontSize: 20, fontWeight: 700, color: "var(--primary)" }}>
-              #{waitlistNumber}
-            </div>
-          </div>
-          <div style={{ flex: 1, paddingLeft: 24 }}>
-            <div style={{ fontFamily: mono, fontSize: 8, color: "var(--muted-foreground)", letterSpacing: "0.14em", textTransform: "uppercase" as const, marginBottom: 8 }}>
-              Joined
-            </div>
-            <div style={{ fontFamily: mono, fontSize: 20, fontWeight: 700, color: "var(--foreground)" }}>
-              Feb 2026
-            </div>
-          </div>
+        <div style={{ fontFamily: mono, fontSize: 8, color: "var(--muted-foreground)", letterSpacing: "0.14em", textTransform: "uppercase" as const, marginBottom: 8 }}>
+          Waitlist No.
+        </div>
+        <div style={{ fontFamily: mono, fontSize: 20, fontWeight: 700, color: "var(--primary)" }}>
+          #{waitlistNumber}
         </div>
       </div>
 
-      {/* Footer */}
       <div style={{ borderTop: "1px solid var(--border)", padding: "10px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontFamily: mono, fontSize: 9, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em", textTransform: "uppercase" as const }}>
           qella.gg · AI model arena
@@ -135,7 +118,7 @@ function DoneStep({
   const handleReveal = () => {
     if (reducedMotion) { setShowPassport(true); return }
     setFlipping(true)
-    setTimeout(() => setShowPassport(true), 275) // swap at scaleX ≈ 0 (midpoint of 550ms)
+    setTimeout(() => setShowPassport(true), 275)
   }
 
   const handleDownload = async () => {
@@ -238,7 +221,11 @@ export default function WaitlistPage() {
   const [checking, setChecking] = React.useState(false)
   const [available, setAvailable] = React.useState<boolean | null>(null)
   const [waitlistNumber, setWaitlistNumber] = React.useState("")
+  const [emailError, setEmailError] = React.useState("")
+  const [claiming, setClaiming] = React.useState(false)
+  const [claimError, setClaimError] = React.useState("")
   const shouldReduceMotion = useReducedMotion()
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const navigate = (next: Step) => {
     setDirection(STEPS.indexOf(next) >= STEPS.indexOf(step) ? 1 : -1)
@@ -248,30 +235,52 @@ export default function WaitlistPage() {
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) return
+    setEmailError("")
     setEmailLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
+    const taken = await checkEmailTaken(email.trim())
     setEmailLoading(false)
+    if (taken) {
+      setEmailError("This email is already on the waitlist.")
+      return
+    }
     navigate("username")
   }
 
-  const handleUsernameChange = async (value: string) => {
+  const handleUsernameChange = (value: string) => {
     setUsername(value)
     setAvailable(null)
+    setClaimError("")
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     if (!isValidUsername(value.trim())) return
     setChecking(true)
-    await new Promise((r) => setTimeout(r, 600))
-    setAvailable(!TAKEN.includes(value.trim().toLowerCase()))
-    setChecking(false)
+    debounceRef.current = setTimeout(async () => {
+      const isAvailable = await checkUsername(value.trim())
+      setAvailable(isAvailable)
+      setChecking(false)
+    }, 300)
   }
 
   const trimmed = username.trim()
-  const canClaim = isValidUsername(trimmed) && available === true
+  const canClaim = isValidUsername(trimmed) && available === true && !claiming
 
-  const handleClaim = (e: React.FormEvent) => {
+  const handleClaim = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (canClaim) {
-      setWaitlistNumber(String(Math.floor(Math.random() * 9000) + 1000).padStart(4, "0"))
+    if (!canClaim) return
+    setClaiming(true)
+    setClaimError("")
+    const result = await joinWaitlist(email, trimmed)
+    if ("waitlistNumber" in result) {
+      setWaitlistNumber(result.waitlistNumber)
       navigate("done")
+    } else {
+      setClaiming(false)
+      if (result.error === "username_taken") {
+        setAvailable(false)
+      } else if (result.error === "email_taken") {
+        setClaimError("This email is already registered. Go back and use a different one.")
+      } else {
+        setClaimError("Something went wrong. Please try again.")
+      }
     }
   }
 
@@ -289,19 +298,14 @@ export default function WaitlistPage() {
           className="w-full max-w-sm space-y-10"
         >
 
-          {/* ── Wordmark (shared across all steps) ─────────────────────── */}
           <div className="flex items-center gap-2">
             <div className="size-2.5 bg-primary" />
             <span className="font-pixel-square text-base">qella</span>
           </div>
 
-          {/* ── Welcome ─────────────────────────────────────────────────── */}
           {step === "welcome" && (
             <>
               <div className="space-y-3">
-                <p className="font-mono text-sm tracking-widest uppercase text-muted-foreground">
-                  Private beta
-                </p>
                 <h1 className="font-sans text-2xl font-medium tracking-tight leading-snug">
                   The arena where AI<br />models compete.
                 </h1>
@@ -326,7 +330,6 @@ export default function WaitlistPage() {
             </>
           )}
 
-          {/* ── Email ───────────────────────────────────────────────────── */}
           {step === "email" && (
             <>
               <div className="space-y-3">
@@ -344,16 +347,19 @@ export default function WaitlistPage() {
                   type="email"
                   placeholder="your@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setEmailError("") }}
                   required
                   autoComplete="email"
                   autoFocus
                 />
+                {emailError && (
+                  <p className="font-mono text-sm text-destructive">{emailError}</p>
+                )}
                 <Button type="submit" className="w-full" disabled={emailLoading}>
                   {emailLoading ? (
                     <span className="flex items-center gap-2">
                       <span className="size-3.5 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full animate-spin" />
-                      Continuing…
+                      Checking…
                     </span>
                   ) : (
                     "Continue"
@@ -370,7 +376,6 @@ export default function WaitlistPage() {
             </>
           )}
 
-          {/* ── Username ────────────────────────────────────────────────── */}
           {step === "username" && (
             <>
               <div className="space-y-3">
@@ -399,7 +404,7 @@ export default function WaitlistPage() {
                       onChange={(e) => handleUsernameChange(e.target.value)}
                       aria-invalid={available === false ? "true" : undefined}
                       aria-describedby="username-status"
-                      maxLength={20}
+                      maxLength={17}
                       autoComplete="username"
                       autoCapitalize="none"
                       autoCorrect="off"
@@ -410,7 +415,7 @@ export default function WaitlistPage() {
                   <div id="username-status" aria-live="polite" aria-atomic="true">
                     {username.length > 0 && !isValidUsername(trimmed) && (
                       <FieldDescription>
-                        3–20 characters. Letters, numbers, and underscores only.
+                        3–17 characters. Letters, numbers, and underscores only.
                       </FieldDescription>
                     )}
                     {checking && (
@@ -430,8 +435,18 @@ export default function WaitlistPage() {
                 </Field>
 
                 <div className="space-y-3 mt-10">
+                  {claimError && (
+                    <p className="font-mono text-sm text-destructive">{claimError}</p>
+                  )}
                   <Button type="submit" className="w-full" disabled={!canClaim}>
-                    Claim @{trimmed || "username"}
+                    {claiming ? (
+                      <span className="flex items-center gap-2">
+                        <span className="size-3.5 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full animate-spin" />
+                        Claiming…
+                      </span>
+                    ) : (
+                      <>Claim @{trimmed || "username"}</>
+                    )}
                   </Button>
                   <button
                     type="button"
@@ -445,12 +460,10 @@ export default function WaitlistPage() {
             </>
           )}
 
-          {/* ── Done ────────────────────────────────────────────────────── */}
           {step === "done" && (
             <DoneStep email={email} username={trimmed} waitlistNumber={waitlistNumber} reducedMotion={shouldReduceMotion ?? false} />
           )}
 
-          {/* ── Step indicator (shared) ──────────────────────────────────── */}
           <StepIndicator current={step} />
 
         </motion.div>
