@@ -359,7 +359,7 @@ export default function WaitlistPage() {
                   autoFocus
                 />
                 {emailError && (
-                  <p className="font-mono text-sm text-destructive">{emailError}</p>
+                  <p className="font-mono text-xs text-destructive">{emailError}</p>
                 )}
                 <Button type="submit" className="w-full" disabled={emailLoading}>
                   {emailLoading ? (
@@ -440,9 +440,9 @@ export default function WaitlistPage() {
                   </div>
                 </Field>
 
-                <div className="space-y-3 mt-10">
+                <div className="space-y-3 mt-3">
                   {claimError && (
-                    <p className="font-mono text-sm text-destructive">{claimError}</p>
+                    <p className="font-mono text-xs text-destructive">{claimError}</p>
                   )}
                   <Button type="submit" className="w-full" disabled={!canClaim}>
                     {claiming ? (
