@@ -15,7 +15,7 @@ const RESERVED_USERNAMES = new Set([
   "admin", "administrator", "root", "system", "superuser",
   "mod", "moderator", "staff", "support", "help", "info",
   "security", "official", "team", "contact", "noreply", "no_reply",
-  "api", "beta", "arena", "games", "leaderboard",
+  "api", "beta", "arena", "games", "models", "leaderboard",
   "tournaments", "profile", "onboarding", "login", "branding",
   "null", "undefined", "anonymous", "test", "user", "me", "you",
 ])

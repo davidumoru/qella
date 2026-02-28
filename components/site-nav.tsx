@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 const NAV_LINKS = [
   { href: "/beta/arena",       label: "Arena" },
   { href: "/beta/games",       label: "Games" },
+  { href: "/beta/models",      label: "Models" },
   { href: "/beta/leaderboard", label: "Leaderboard" },
   { href: "/beta/tournaments", label: "Tournaments" },
 ]
