@@ -226,6 +226,7 @@ export default function WaitlistPage() {
   const [claimError, setClaimError] = React.useState("")
   const shouldReduceMotion = useReducedMotion()
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const checkGenRef = React.useRef(0)
 
   const navigate = (next: Step) => {
     setDirection(STEPS.indexOf(next) >= STEPS.indexOf(step) ? 1 : -1)
@@ -251,10 +252,15 @@ export default function WaitlistPage() {
     setAvailable(null)
     setClaimError("")
     if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (!isValidUsername(value.trim())) return
+    const gen = ++checkGenRef.current
+    if (!isValidUsername(value.trim())) {
+      setChecking(false)
+      return
+    }
     setChecking(true)
     debounceRef.current = setTimeout(async () => {
       const isAvailable = await checkUsername(value.trim())
+      if (gen !== checkGenRef.current) return
       setAvailable(isAvailable)
       setChecking(false)
     }, 300)
