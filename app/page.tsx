@@ -309,7 +309,7 @@ export default function WaitlistPage() {
           animate="center"
           exit="exit"
           transition={{ duration: 0.22, ease: [0.165, 0.84, 0.44, 1] }}
-          className="w-full max-w-sm space-y-10"
+          className="w-full max-w-sm space-y-6 md:space-y-10"
         >
 
           <div className="flex items-center gap-2">
@@ -331,7 +331,7 @@ export default function WaitlistPage() {
 
               <div className="border border-border">
                 {FEATURES.map(({ title, body }) => (
-                  <div key={title} className="px-4 py-3.5 border-b border-border last:border-b-0 space-y-0.5">
+                  <div key={title} className="px-4 py-2.5 md:py-3.5 border-b border-border last:border-b-0 space-y-0.5">
                     <p className="font-sans text-sm font-medium">{title}</p>
                     <p className="font-mono text-sm text-muted-foreground leading-relaxed">{body}</p>
                   </div>
