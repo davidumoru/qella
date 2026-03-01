@@ -91,6 +91,7 @@ export const sendConfirmationEmail = internalAction({
   handler: async (_ctx, { to, username, waitlistNumber }) => {
     const { LoopsClient } = await import("loops");
     const loops = new LoopsClient(process.env.LOOPS_API_KEY!);
+    await loops.updateContact({ email: to, properties: { username } });
     await loops.sendTransactionalEmail({
       transactionalId: "cmm7l8du814u90i10mbatdblm",
       email: to,
