@@ -11,6 +11,7 @@ import {
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
 import { ConvexClientProvider } from "@/components/convex-provider";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
           </div>
         </ConvexClientProvider>
       </body>
+      <Analytics />
     </html>
   );
 }
