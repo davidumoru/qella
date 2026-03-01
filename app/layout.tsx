@@ -10,6 +10,7 @@ import {
 } from "geist/font/pixel";
 import { SiteNav } from "@/components/site-nav";
 import { SiteFooter } from "@/components/site-footer";
+import { ConvexClientProvider } from "@/components/convex-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -27,11 +28,13 @@ export default function RootLayout({
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable} ${GeistPixelGrid.variable} ${GeistPixelCircle.variable} ${GeistPixelTriangle.variable} ${GeistPixelLine.variable} font-sans antialiased`}
       >
-        <div className="max-w-350 mx-auto flex flex-col min-h-screen">
-          <SiteNav />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
-        </div>
+        <ConvexClientProvider>
+          <div className="max-w-350 mx-auto flex flex-col min-h-screen">
+            <SiteNav />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </div>
+        </ConvexClientProvider>
       </body>
     </html>
   );

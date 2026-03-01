@@ -5,7 +5,8 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
-import { checkEmailTaken, checkUsername, joinWaitlist } from "@/app/actions"
+import { useConvex, useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
 
 type Step = "welcome" | "email" | "username" | "done"
 
@@ -228,6 +229,8 @@ export default function WaitlistPage() {
   const [emailError, setEmailError] = React.useState("")
   const [claiming, setClaiming] = React.useState(false)
   const [claimError, setClaimError] = React.useState("")
+  const convex = useConvex()
+  const join = useMutation(api.waitlist.join)
   const shouldReduceMotion = useReducedMotion()
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const checkGenRef = React.useRef(0)
@@ -246,9 +249,9 @@ export default function WaitlistPage() {
     }
     setEmailError("")
     setEmailLoading(true)
-    const taken = await checkEmailTaken(email.trim())
+    const available = await convex.query(api.waitlist.isEmailAvailable, { email: email.trim() })
     setEmailLoading(false)
-    if (taken) {
+    if (!available) {
       setEmailError("This email is already on the waitlist.")
       return
     }
@@ -267,7 +270,7 @@ export default function WaitlistPage() {
     }
     setChecking(true)
     debounceRef.current = setTimeout(async () => {
-      const isAvailable = await checkUsername(value.trim())
+      const isAvailable = await convex.query(api.waitlist.isUsernameAvailable, { username: value.trim() })
       if (gen !== checkGenRef.current) return
       setAvailable(isAvailable)
       setChecking(false)
@@ -282,19 +285,16 @@ export default function WaitlistPage() {
     if (!canClaim) return
     setClaiming(true)
     setClaimError("")
-    const result = await joinWaitlist(email, trimmed)
-    if ("waitlistNumber" in result) {
-      setWaitlistNumber(result.waitlistNumber)
+    try {
+      const number = await join({ email, username: trimmed })
+      setWaitlistNumber(number)
       navigate("done")
-    } else {
+    } catch (err) {
       setClaiming(false)
-      if (result.error === "username_taken") {
-        setAvailable(false)
-      } else if (result.error === "email_taken") {
-        setClaimError("This email is already registered. Go back and use a different one.")
-      } else {
-        setClaimError("Something went wrong. Please try again.")
-      }
+      const msg = err instanceof Error ? err.message : ""
+      if (msg.includes("username_taken")) setAvailable(false)
+      else if (msg.includes("email_taken")) setClaimError("This email is already registered. Go back and use a different one.")
+      else setClaimError("Something went wrong. Please try again.")
     }
   }
 
